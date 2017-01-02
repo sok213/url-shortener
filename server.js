@@ -17,44 +17,57 @@ function onRequest(req, res) {
 			//Declare variables.
 			let urlbank = db.collection('urlbank'),
 				getId = [],
-				newUrlObj;
+				newUrlObj,
+				existCheck;
 
-			//Gets the url and insterts it into the database.
-			urlbank.insert(
-				{	
-					"original_url": parsed,
-					"short_url": "N/A"
+			//Checks to see if the URL already exists in database, if not, add it. Else, do nothing.
+			urlbank.find({"original_url": parsed}).count((err, count) => {
+				console.log('WTF:' + count);
+				if(count == 0) {
+					addUrlObject();
+				} else {
+					db.close();
 				}
-			)
+			})
 
-			//Finds the recently added url and updates the short_url with the given _id value.
-			urlbank.find({ "original_url": parsed }).forEach(d => {
-				//Pushes object id to getId variable.
-				getId.push(d._id);
-				//Updates the short_url key value.
-				urlbank.update(
-					{ "original_url": parsed }, 
-					{
-						$set: { "short_url": JSON.stringify(getId).substring(20, 26) }
+			function addUrlObject() {
+				//Gets the url and insterts it into the database.
+				urlbank.insert(
+					{	
+						"original_url": parsed,
+						"short_url": "N/A"
 					}
-				);
+				)
 
-				//Sets a clone object of the url data object to be used as a response.
-				newUrlObj = {
-					"original_url": parsed,
-					"short_url": JSON.stringify(getId).substring(20, 26)
-				};
+				//Finds the recently added url and updates the short_url with the given _id value.
+				urlbank.find({ "original_url": parsed }).forEach(d => {
+					//Pushes object id to getId variable.
+					getId.push(d._id);
+					//Updates the short_url key value.
+					urlbank.update(
+						{ "original_url": parsed }, 
+						{
+							$set: { "short_url": JSON.stringify(getId).substring(20, 26) }
+						}
+					);
 
-				//Close connection
-				db.close();
-				console.log('NEW OBJECT: ' + JSON.stringify(newUrlObj));
-				//Sets the response type.
-				res.writeHead(200, {'Content-Type': 'text/plain'});
-				//Send the client the response object.
-				res.write(JSON.stringify(newUrlObj));
-				//End the res.
-				res.end();
-			});
+					//Sets a clone object of the url data object to be used as a response.
+					newUrlObj = {
+						"original_url": parsed,
+						"short_url": JSON.stringify(getId).substring(20, 26)
+					};
+
+					//Close connection
+					db.close();
+					console.log('NEW OBJECT: ' + JSON.stringify(newUrlObj));
+					//Sets the response type.
+					res.writeHead(200, {'Content-Type': 'text/plain'});
+					//Send the client the response object.
+					res.write(JSON.stringify(newUrlObj));
+					//End the res.
+					res.end();
+				});
+			}
 		}
 	});
 }
@@ -74,4 +87,3 @@ const mongoLabUrl = process.env.MONGOLAB_URI;
 
 //Create the http server.
 http.createServer(onRequest).listen(port);
-
