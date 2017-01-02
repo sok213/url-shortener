@@ -19,7 +19,7 @@ function onRequest(req, res) {
 
 			//Retrieve the collection from the mLab database.
 			let urlbank = db.collection('urlbank');
-
+			console.log("PARES"+parsed.length)
 			checkIfShortURL();
 
 			//Checks to see if the client's URL is a pre-existing short URL within the database.
@@ -50,7 +50,16 @@ function onRequest(req, res) {
 
 			//Checks to see if the client's URL is a valid address. 
 			function urlFormatValidation() {
+				let urlInspect = parsed.split(".");
 
+				//If URL has greater than or less than 3 dots, it is considered an invalid URL address.
+				if(urlInspect.length > 3 || urlInspect.length <= 1) {
+					res.write('{"error": "Invalid URL, please provide a valid URL address!"}');
+					db.close();
+					res.end();
+				} else {
+					checkForExistingURL();
+				}
 			}
 
 			//Checks to see if the URL already exists in database, if not, add it. Else, do nothing.
