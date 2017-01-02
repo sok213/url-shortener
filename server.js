@@ -3,6 +3,7 @@ const http = require('http'),
 	port = process.env.PORT || 3000;
 
 function onRequest(req, res) {
+	//Stores the current URL address.
 	const parsed = url.parse(req.url).href.split('/').join('');
 
 	//Sets the response type.
@@ -10,26 +11,45 @@ function onRequest(req, res) {
 
 	// Use connect method to connect to the Server
 	MongoClient.connect(mongoLabUrl, (err, db) => {
+		//Error handler.
 		if (err) {
 			console.log('Unable to connect to the mongoDB server. Error:', err);
 		} else {
 			console.log('Connection established to', mongoLabUrl);
 
-			//Store the url address parameter.
+			//Retrieve the collection from the mLab database.
 			let urlbank = db.collection('urlbank');
 
+			checkIfShortURL();
+
+			//Checks to see if the client's URL is a pre-existing short URL within the database.
 			function checkIfShortURL() {
 				urlbank.find({"short_url": "http://localhost:3000/" + parsed}).count((err, count) => {
+					console.log("http://localhost:3000/" + parsed)
 					// If url is not a short url, check if it is a valid URL address to be processed as a new document.
+					// Else, redirect the client the the original_url.
 					if(count == 0) {
-
+						console.log('shiiitt')
+						urlFormatValidation();
 					} else {
-
+						redirectUser();
 					}
 				});
 			}
 
-			function urlFormatValidation(clientUrl) {
+			function redirectUser() {
+				urlbank.find({"short_url": "http://localhost:3000/" + parsed}).forEach(d => {
+					res.writeHead(301,
+					  { Location: 'http://www.' + d.original_url }
+					);
+					console.log(d.original_url);
+					db.close();
+					res.end();
+				})
+			}
+
+			//Checks to see if the client's URL is a valid address. 
+			function urlFormatValidation() {
 
 			}
 
