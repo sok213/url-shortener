@@ -1,6 +1,7 @@
 const http = require('http'),
 	url = require('url'),
-	port = process.env.PORT || 3000;
+	port = process.env.PORT || 3000,
+	hostURL = "https://honey-i-shrunk-the-url.herokuapp.com/";
 
 function onRequest(req, res) {
 	//Stores the current URL address.
@@ -23,7 +24,7 @@ function onRequest(req, res) {
 
 			//Checks to see if the client's URL is a pre-existing short URL within the database.
 			function checkIfShortURL() {
-				urlbank.find({"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + parsed}).count((err, count) => {
+				urlbank.find({"short_url": hostURL + parsed}).count((err, count) => {
 					// If url is not a short url, check if it is a valid URL address to be processed as a new document.
 					// Else, redirect the client the the original_url.
 					if(count == 0) {
@@ -35,9 +36,9 @@ function onRequest(req, res) {
 			}
 
 			function redirectUser() {
-				urlbank.find({"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + parsed}).forEach(d => {
+				urlbank.find({"short_url": hostURL + parsed}).forEach(d => {
 					res.writeHead(301,
-					  { Location: 'http://www.' + d.link_address }
+					  { Location: d.link_address }
 					);
 					db.close();
 					res.end();
@@ -67,18 +68,18 @@ function onRequest(req, res) {
 						insertNewURL(f_URL);
 					} else {
 						//Send the client the response object.
-						returnFoundDoc();
+						returnFoundDoc(f_URL);
 						db.close();
 					}
 				});
 			}
 
 			//This function will find the pre-existing URL and return the reponse to the client.
-			function returnFoundDoc() {
+			function returnFoundDoc(f_URL) {
 				urlbank.find({"original_url": parsed}).forEach( d => {
 					//Send back the pre-existing URL to client.
 					const responseURL = {
-						"original_url": d.original_url,
+						"original_url": f_URL,
 						"short_url": d.short_url
 					};
 
@@ -108,8 +109,8 @@ function onRequest(req, res) {
 						{ "original_url": parsed }, 
 						{
 							$set: { 
-								"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26),
-								"link_address": f_URL;
+								"short_url": hostURL + JSON.stringify(getId).substring(20, 26),
+								"link_address": f_URL
 							}
 						}
 					);
@@ -117,8 +118,7 @@ function onRequest(req, res) {
 					//Sets a clone object of the url data object to be used as a response.
 					let newUrlObj = {
 						"original_url": parsed,
-						"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26),
-						"link_address": f_URL
+						"short_url": hostURL + JSON.stringify(getId).substring(20, 26)
 					};
 
 					//Close connection
