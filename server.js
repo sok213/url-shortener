@@ -50,8 +50,6 @@ function onRequest(req, res) {
 				let urlInspect = parsed.split("."),
 						formattedURL = "http://www." + urlInspect[urlInspect.length - 2] + "." + urlInspect[urlInspect.length - 1];
 
-				console.log("formattedURL: " + formattedURL);
-
 				//If URL has greater than or less than 3 dots, it is considered an invalid URL address.
 				if(urlInspect.length > 3 || urlInspect.length <= 1) {
 					res.write('{"error": "Invalid URL, please provide a valid URL address!"}');
