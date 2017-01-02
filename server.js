@@ -4,7 +4,7 @@ const http = require('http'),
 
 function onRequest(req, res) {
 	//Stores the current URL address.
-	const parsed = url.parse(req.url).href.split('/').join('');
+	const parsed = url.parse(req.url).href.split('/').join('').toLowerCase();
 
 	//Sets the response type.
 	res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -19,17 +19,14 @@ function onRequest(req, res) {
 
 			//Retrieve the collection from the mLab database.
 			let urlbank = db.collection('urlbank');
-			console.log("PARES"+parsed.length)
 			checkIfShortURL();
 
 			//Checks to see if the client's URL is a pre-existing short URL within the database.
 			function checkIfShortURL() {
-				urlbank.find({"short_url": "http://localhost:3000/" + parsed}).count((err, count) => {
-					console.log("http://localhost:3000/" + parsed)
+				urlbank.find({"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + parsed}).count((err, count) => {
 					// If url is not a short url, check if it is a valid URL address to be processed as a new document.
 					// Else, redirect the client the the original_url.
 					if(count == 0) {
-						console.log('shiiitt')
 						urlFormatValidation();
 					} else {
 						redirectUser();
@@ -38,7 +35,7 @@ function onRequest(req, res) {
 			}
 
 			function redirectUser() {
-				urlbank.find({"short_url": "http://localhost:3000/" + parsed}).forEach(d => {
+				urlbank.find({"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + parsed}).forEach(d => {
 					res.writeHead(301,
 					  { Location: 'http://www.' + d.original_url }
 					);
@@ -109,14 +106,14 @@ function onRequest(req, res) {
 					urlbank.update(
 						{ "original_url": parsed }, 
 						{
-							$set: { "short_url": "http://localhost:3000/" + JSON.stringify(getId).substring(20, 26) }
+							$set: { "short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26) }
 						}
 					);
 
 					//Sets a clone object of the url data object to be used as a response.
 					let newUrlObj = {
 						"original_url": parsed,
-						"short_url": "http://localhost:3000/" + JSON.stringify(getId).substring(20, 26)
+						"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26)
 					};
 
 					//Close connection
