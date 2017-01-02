@@ -16,11 +16,11 @@ Run the application.
 
 #### Example usage
 
-`https://honey-i-shrunk-the-url.herokuapp.com/www.google.com`
+`https://honey-i-shrunk-the-url.herokuapp.com/medium.com/@sok213`
 
 #### Example output
 
-`{"original_url":"www.google.com","short_url":"https://honey-i-shrunk-the-url.herokuapp.com/3cd035"}`
+`{"original_url":"medium.com/@sok213","short_url":"https://honey-i-shrunk-the-url.herokuapp.com/44cc0e"}`
 
 
 >Note: "Shortened" version of the URL is not actually shorter than originally provided URL. This project is intended to simulate how to chain two links together and store the pair of URL addresses via MongoDB. 
