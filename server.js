@@ -2,13 +2,14 @@ const http = require('http'),
 	url = require('url'),
 	port = process.env.PORT || 3000;
 
-let testObj;
-
 function onRequest(req, res) {
-	let parsed = url.parse(req.url).href.split('/').join('');
+	const parsed = url.parse(req.url).href.split('/').join('');
+
+	//Sets the response type.
+	res.writeHead(200, {'Content-Type': 'text/plain'});
 
 	// Use connect method to connect to the Server
-	MongoClient.connect(mongoLabUrl, function (err, db) {
+	MongoClient.connect(mongoLabUrl, (err, db) => {
 		if (err) {
 			console.log('Unable to connect to the mongoDB server. Error:', err);
 		} else {
@@ -24,13 +25,30 @@ function onRequest(req, res) {
 			urlbank.find({"original_url": parsed}).count((err, count) => {
 				console.log('WTF:' + count);
 				if(count == 0) {
-					addUrlObject();
+					insertNewURL();
 				} else {
+					//Send the client the response object.
+					returnFoundDoc();
 					db.close();
 				}
 			})
 
-			function addUrlObject() {
+			//This function will find the pre-existing URL and return the reponse to the client.
+			function returnFoundDoc() {
+				urlbank.find({"original_url": parsed}).forEach( d => {
+					//Send back the pre-existing URL to client.
+					const responseURL = {
+						"original_url": d.original_url,
+						"short_url": d.short_url
+					};
+
+					res.write(JSON.stringify(responseURL));
+					res.end();
+				});
+			}
+
+			//This function will create the new URL object and insert it into the database.
+			function insertNewURL() {
 				//Gets the url and insterts it into the database.
 				urlbank.insert(
 					{	
@@ -59,9 +77,7 @@ function onRequest(req, res) {
 
 					//Close connection
 					db.close();
-					console.log('NEW OBJECT: ' + JSON.stringify(newUrlObj));
-					//Sets the response type.
-					res.writeHead(200, {'Content-Type': 'text/plain'});
+					console.log('NEW OBJECT INSERTED: ' + JSON.stringify(newUrlObj));
 					//Send the client the response object.
 					res.write(JSON.stringify(newUrlObj));
 					//End the res.
@@ -78,12 +94,8 @@ const mongodb = require('mongodb');
 //We need to work with "MongoClient" interface in order to connect to a mongodb server.
 const MongoClient = mongodb.MongoClient;
 
-// Connection URL. This is where your mongodb server is running.
-
-//(Focus on This Variable)
+//Retrieves my personal mLAB database URL via the process invironment variable.
 const mongoLabUrl = process.env.MONGOLAB_URI;      
-//(Focus on This Variable)
-
 
 //Create the http server.
 http.createServer(onRequest).listen(port);
