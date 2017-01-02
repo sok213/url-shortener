@@ -3,7 +3,7 @@
 var http = require('http'),
     url = require('url'),
     port = process.env.PORT || 3000,
-    hostURL = "http://localhost:3000/"; //https://honey-i-shrunk-the-url.herokuapp.com/";
+    hostURL = "https://honey-i-shrunk-the-url.herokuapp.com/";
 
 function onRequest(req, res) {
 	//Stores the current URL address.
