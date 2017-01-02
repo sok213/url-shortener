@@ -37,9 +37,8 @@ function onRequest(req, res) {
 			function redirectUser() {
 				urlbank.find({"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + parsed}).forEach(d => {
 					res.writeHead(301,
-					  { Location: 'http://www.' + d.original_url }
+					  { Location: 'http://www.' + d.link_address }
 					);
-					console.log(d.original_url);
 					db.close();
 					res.end();
 				})
@@ -47,7 +46,8 @@ function onRequest(req, res) {
 
 			//Checks to see if the client's URL is a valid address. 
 			function urlFormatValidation() {
-				let urlInspect = parsed.split(".");
+				let urlInspect = parsed.split("."),
+						formattedURL = "http://www." + urlInspect[urlInspect.length - 2] + "." + urlInspect[urlInspect.length - 1];
 
 				//If URL has greater than or less than 3 dots, it is considered an invalid URL address.
 				if(urlInspect.length > 3 || urlInspect.length <= 1) {
@@ -55,16 +55,16 @@ function onRequest(req, res) {
 					db.close();
 					res.end();
 				} else {
-					checkForExistingURL();
+					checkForExistingURL(formattedURL);
 				}
 			}
 
 			//Checks to see if the URL already exists in database, if not, add it. Else, do nothing.
-			function checkForExistingURL() {
+			function checkForExistingURL(f_URL) {
 				urlbank.find({"original_url": parsed}).count((err, count) => {
 					//if URL does not exist, run insertNewURL(), else run returnFoundDoc().
 					if(count == 0) {
-						insertNewURL();
+						insertNewURL(f_URL);
 					} else {
 						//Send the client the response object.
 						returnFoundDoc();
@@ -88,12 +88,13 @@ function onRequest(req, res) {
 			}
 
 			//This function will create the new URL object and insert it into the database.
-			function insertNewURL() {
+			function insertNewURL(f_URL) {
 				let getId = [];
 				//Gets the url and insterts it into the database.
 				urlbank.insert(
 					{	
 						"original_url": parsed,
+						"link_address": "N/A",
 						"short_url": "N/A"
 					}
 				)
@@ -106,14 +107,18 @@ function onRequest(req, res) {
 					urlbank.update(
 						{ "original_url": parsed }, 
 						{
-							$set: { "short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26) }
+							$set: { 
+								"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26),
+								"link_address": f_URL;
+							}
 						}
 					);
 
 					//Sets a clone object of the url data object to be used as a response.
 					let newUrlObj = {
 						"original_url": parsed,
-						"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26)
+						"short_url": "https://honey-i-shrunk-the-url.herokuapp.com/" + JSON.stringify(getId).substring(20, 26),
+						"link_address": f_URL
 					};
 
 					//Close connection
