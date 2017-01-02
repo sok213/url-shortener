@@ -15,23 +15,37 @@ function onRequest(req, res) {
 		} else {
 			console.log('Connection established to', mongoLabUrl);
 
-			//Declare variables.
-			let urlbank = db.collection('urlbank'),
-				getId = [],
-				newUrlObj,
-				existCheck;
+			//Store the url address parameter.
+			let urlbank = db.collection('urlbank');
+
+			function checkIfShortURL() {
+				urlbank.find({"short_url": "http://localhost:3000/" + parsed}).count((err, count) => {
+					// If url is not a short url, check if it is a valid URL address to be processed as a new document.
+					if(count == 0) {
+
+					} else {
+
+					}
+				});
+			}
+
+			function urlFormatValidation(clientUrl) {
+
+			}
 
 			//Checks to see if the URL already exists in database, if not, add it. Else, do nothing.
-			urlbank.find({"original_url": parsed}).count((err, count) => {
-				console.log('WTF:' + count);
-				if(count == 0) {
-					insertNewURL();
-				} else {
-					//Send the client the response object.
-					returnFoundDoc();
-					db.close();
-				}
-			})
+			function checkForExistingURL() {
+				urlbank.find({"original_url": parsed}).count((err, count) => {
+					//if URL does not exist, run insertNewURL(), else run returnFoundDoc().
+					if(count == 0) {
+						insertNewURL();
+					} else {
+						//Send the client the response object.
+						returnFoundDoc();
+						db.close();
+					}
+				});
+			}
 
 			//This function will find the pre-existing URL and return the reponse to the client.
 			function returnFoundDoc() {
@@ -49,6 +63,7 @@ function onRequest(req, res) {
 
 			//This function will create the new URL object and insert it into the database.
 			function insertNewURL() {
+				let getId = [];
 				//Gets the url and insterts it into the database.
 				urlbank.insert(
 					{	
@@ -65,14 +80,14 @@ function onRequest(req, res) {
 					urlbank.update(
 						{ "original_url": parsed }, 
 						{
-							$set: { "short_url": JSON.stringify(getId).substring(20, 26) }
+							$set: { "short_url": "http://localhost:3000/" + JSON.stringify(getId).substring(20, 26) }
 						}
 					);
 
 					//Sets a clone object of the url data object to be used as a response.
-					newUrlObj = {
+					let newUrlObj = {
 						"original_url": parsed,
-						"short_url": JSON.stringify(getId).substring(20, 26)
+						"short_url": "http://localhost:3000/" + JSON.stringify(getId).substring(20, 26)
 					};
 
 					//Close connection
@@ -83,10 +98,10 @@ function onRequest(req, res) {
 					//End the res.
 					res.end();
 				});
-			}
-		}
-	});
-}
+			} //End of insertNewURL() function.
+		} //End of else closing bracket.
+	}); //End of MongoClient connect function.
+} //End of onRequest() function.
 
 //lets require/import the mongodb native drivers.
 const mongodb = require('mongodb');
