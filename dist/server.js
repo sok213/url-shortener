@@ -3,11 +3,11 @@
 var http = require('http'),
     url = require('url'),
     port = process.env.PORT || 3000,
-    hostURL = "https://honey-i-shrunk-the-url.herokuapp.com/";
+    hostURL = "http://localhost:3000/"; //https://honey-i-shrunk-the-url.herokuapp.com/";
 
 function onRequest(req, res) {
 	//Stores the current URL address.
-	var parsed = url.parse(req.url).href.split('/').join('').toLowerCase();
+	var parsed = url.parse(req.url).href.substring(1, url.parse(req.url).href.length);
 
 	//Sets the response type.
 	res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -47,6 +47,8 @@ function onRequest(req, res) {
 				var urlFormatValidation = function urlFormatValidation() {
 					var urlInspect = parsed.split("."),
 					    formattedURL = "http://www." + urlInspect[urlInspect.length - 2] + "." + urlInspect[urlInspect.length - 1];
+
+					console.log("formattedURL: " + formattedURL);
 
 					//If URL has greater than or less than 3 dots, it is considered an invalid URL address.
 					if (urlInspect.length > 3 || urlInspect.length <= 1) {
