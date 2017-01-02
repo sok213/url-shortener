@@ -75,5 +75,3 @@ const mongoLabUrl = process.env.MONGOLAB_URI;
 //Create the http server.
 http.createServer(onRequest).listen(port);
 
-//DELETE THIS BEFORE PUSH
-// export MONGOLAB_URI="mongodb://sok213:planetx213@ds145158.mlab.com:45158/urlstorage"
