@@ -1,23 +1,62 @@
-const express = require('express'),
-	ejs = require('ejs'),
-	app = express(),
-	path = require('path'),
-	http = require('http').Server(app),
+const http = require('http'),
 	url = require('url'),
-	port = process.env.PORT || 3000,
-	routes = require('./routes/index');
+	port = process.env.PORT || 3000;
 
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-//Pipe the css
-app.use('/', express.static('public'));
-//calls the routes javascript file.
-app.get('/', routes);
+let testObj;
 
 function onRequest(req, res) {
-	console.log('Listening on port: ' + port);
-	var parsed = url.parse(req.url).href.split('/').join('');
-	console.log("parsed :" +parsed );
+	let parsed = url.parse(req.url).href.split('/').join('');
+
+	// Use connect method to connect to the Server
+	MongoClient.connect(mongoLabUrl, function (err, db) {
+		if (err) {
+			console.log('Unable to connect to the mongoDB server. Error:', err);
+		} else {
+			console.log('Connection established to', mongoLabUrl);
+
+			//Declare variables.
+			let urlbank = db.collection('urlbank'),
+				getId = [],
+				newUrlObj;
+
+			//Gets the url and insterts it into the database.
+			urlbank.insert(
+				{	
+					"original_url": parsed,
+					"short_url": "N/A"
+				}
+			)
+
+			//Finds the recently added url and updates the short_url with the given _id value.
+			urlbank.find({ "original_url": parsed }).forEach(d => {
+				//Pushes object id to getId variable.
+				getId.push(d._id);
+				//Updates the short_url key value.
+				urlbank.update(
+					{ "original_url": parsed }, 
+					{
+						$set: { "short_url": JSON.stringify(getId).substring(20, 26) }
+					}
+				);
+
+				//Sets a clone object of the url data object to be used as a response.
+				newUrlObj = {
+					"original_url": parsed,
+					"short_url": JSON.stringify(getId).substring(20, 26)
+				};
+
+				//Close connection
+				db.close();
+				console.log('NEW OBJECT: ' + JSON.stringify(newUrlObj));
+				//Sets the response type.
+				res.writeHead(200, {'Content-Type': 'text/plain'});
+				//Send the client the response object.
+				res.write(JSON.stringify(newUrlObj));
+				//End the res.
+				res.end();
+			});
+		}
+	});
 }
 
 //lets require/import the mongodb native drivers.
@@ -32,24 +71,9 @@ const MongoClient = mongodb.MongoClient;
 const mongoLabUrl = process.env.MONGOLAB_URI;      
 //(Focus on This Variable)
 
-// Use connect method to connect to the Server
-  MongoClient.connect(mongoLabUrl, function (err, db) {
-  if (err) {
-    console.log('Unable to connect to the mongoDB server. Error:', err);
-  } else {
-    console.log('Connection established to', mongoLabUrl);
-
-    // do some work here with the database.
-
-    //Close connection
-    db.close();
-  }
-});
 
 //Create the http server.
-//http.createServer(onRequest).listen(port);
-//console.log('Server is now running on port: ' + port);
+http.createServer(onRequest).listen(port);
 
-http.listen(port, function() {
-	console.log('Listening on port: ' + port);
-});
+//DELETE THIS BEFORE PUSH
+// export MONGOLAB_URI="mongodb://sok213:planetx213@ds145158.mlab.com:45158/urlstorage"
