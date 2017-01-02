@@ -22,4 +22,5 @@ Run the application.
 
 `{"original_url":"www.google.com","short_url":"https://honey-i-shrunk-the-url.herokuapp.com/3cd035"}`
 
-Note: Shortened URL is not actually shorter than original URL. This project is intended to simulate how to chain two links together and store the pair of URL addresses via MongoDB. 
+
+>Note: Shortened URL is not actually shorter than original URL. This project is intended to simulate how to chain two links together and store the pair of URL addresses via MongoDB. 
