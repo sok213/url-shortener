@@ -1,14 +1,14 @@
 const http = require('http'),
 	url = require('url'),
 	port = process.env.PORT || 3000,
-	hostURL = "https://honey-i-shrunk-the-url.herokuapp.com/";
+	hostURL = 'https://honey-i-shrunk-the-url.herokuapp.com/';
 
 function onRequest(req, res) {
 	//Stores the current URL address.
 	const parsed = url.parse(req.url).href.substring(1, url.parse(req.url).href.length);
 
 	//Sets the response type.
-	res.writeHead(200, {'Content-Type': 'text/plain'});
+	res.writeHead(200, {'Content-Type': 'application/json'});
 
 	// Use connect method to connect to the Server
 	MongoClient.connect(mongoLabUrl, (err, db) => {
@@ -42,7 +42,7 @@ function onRequest(req, res) {
 					);
 					db.close();
 					res.end();
-				})
+				});
 			}
 
 			//Checks to see if the client's URL is a valid address. 
@@ -98,7 +98,7 @@ function onRequest(req, res) {
 						"link_address": "N/A",
 						"short_url": "N/A"
 					}
-				)
+				);
 
 				//Finds the recently added url and updates the short_url with the given _id value.
 				urlbank.find({ "original_url": parsed }).forEach(d => {
@@ -145,3 +145,7 @@ const mongoLabUrl = process.env.MONGOLAB_URI;
 
 //Create the http server.
 http.createServer(onRequest).listen(port);
+
+
+
+
